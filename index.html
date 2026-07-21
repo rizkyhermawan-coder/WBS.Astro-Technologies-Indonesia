@@ -937,7 +937,7 @@
                             </div>
                             <div class="form-group full-width">
                                 <label for="sup_desc">Deskripsi Kejadian Secara Kronologis <span class="required">*</span></label>
-                                <textarea id="sup_desc" name="sup_desc" rows="5" placeholder="Contoh: Terjadi indikasi penyimpangan berupa penagihan yang tidak sesuai / permintaan hadiah / manipulasi barang oleh vendor pada tanggal... (Jelaskan detail kronologinya)"></textarea>
+                                <textarea id="sup_desc" name="sup_desc" rows="5" placeholder="Contoh: Terjadi indikasi penyimpangan berupa penagihan yang tidak sesuai / permintaan hadiah / manipulasi barang oleh supplier pada tanggal... (Jelaskan detail kronologinya)"></textarea>
                             </div>
                         </div>
                     </div>
@@ -1070,16 +1070,12 @@
                 ${!isInitial ? `<button type="button" class="btn-remove-item" onclick="removeReportedField('block_${blockId}', 'sup')">🗑️ Hapus</button>` : ''}
                 <div class="form-grid">
                     <div class="form-group full-width">
-                        <label>Nama Perusahaan / Vendor Supplier <span class="required">*</span></label>
+                        <label>Nama Perusahaan / Supplier <span class="required">*</span></label>
                         <input type="text" name="sup_reported_company[]" required>
                     </div>
-                    <div class="form-group">
-                        <label>Nama Lengkap PIC / Personil <span class="required">*</span></label>
-                        <input type="text" name="sup_reported_name[]" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Role <span class="required">*</span></label>
-                        <input type="text" name="sup_reported_pos[]" required>
+                    <div class="form-group full-width">
+                        <label>Nama Lengkap PIC / Personil <span style="font-weight: 400; color: var(--text-muted); font-size: 0.8rem;">(Opsional)</span></label>
+                        <input type="text" name="sup_reported_name[]">
                     </div>
                     <div class="form-group full-width" style="margin-bottom: 10px;">
                         <label>Nomor Kontak (No HP) <span style="font-weight: 400; color: var(--text-muted); font-size: 0.8rem;">(Opsional)</span></label>
@@ -1182,7 +1178,7 @@
 
     function setFieldsRequired(blockId, isRequired) {
         const block = document.getElementById(blockId);
-        const inputs = block.querySelectorAll('input:not([name*="_reported_phone"]), textarea, select');
+        const inputs = block.querySelectorAll('input:not([name*="_reported_phone"]):not([name*="sup_reported_name"]), textarea, select');
         inputs.forEach(input => {
             if (input.type !== 'radio' && !input.name.includes('[]')) {
                 input.required = isRequired;
@@ -1244,16 +1240,18 @@
         }
 
         document.querySelectorAll(`input[name="${prefix}_reported_name[]"]`).forEach(input => {
-            if(input.value.trim() !== "") reportedNamesArr.push(input.value.trim());
+            reportedNamesArr.push(input.value.trim() !== "" ? input.value.trim() : "-");
         });
         
         document.querySelectorAll(`input[name="${prefix}_reported_phone[]"]`).forEach(input => {
             reportedPhonesArr.push(input.value.trim() !== "" ? input.value.trim() : "-");
         });
 
-        document.querySelectorAll(`input[name="${prefix}_reported_pos[]"]`).forEach(input => {
-            reportedPosArr.push(input.value.trim() !== "" ? input.value.trim() : "-");
-        });
+        if (activeType !== 'supplier') {
+            document.querySelectorAll(`input[name="${prefix}_reported_pos[]"]`).forEach(input => {
+                reportedPosArr.push(input.value.trim() !== "" ? input.value.trim() : "-");
+            });
+        }
 
         let payload = {
             main_report_type: document.querySelector('input[name="main_report_type"]:checked').value,
@@ -1262,10 +1260,13 @@
             agreement_signed: "Ya, saya bersedia menyatakan laporan tersebut.",
             reported_status: activeType === 'supplier' ? 'Supplier' : (activeType === 'mitra' ? 'Mitra' : 'Karyawan'),
             reported_name: activeType === 'supplier' 
-                ? reportedCompaniesArr.map((comp, idx) => `${comp} - ${reportedNamesArr[idx] || ''}`).join(', ')
+                ? reportedCompaniesArr.map((comp, idx) => {
+                    let picName = reportedNamesArr[idx] && reportedNamesArr[idx] !== '-' ? ` - ${reportedNamesArr[idx]}` : '';
+                    return `${comp}${picName}`;
+                  }).join(', ')
                 : reportedNamesArr.join(', '), 
             reported_phone: reportedPhonesArr.join(', '),
-            reported_pos: reportedPosArr.join(', ')
+            reported_pos: activeType === 'supplier' ? '-' : reportedPosArr.join(', ')
         };
 
         if (activeType === 'mitra') {
