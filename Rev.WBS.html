@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whistleblowing System (WBS) - ASTRO</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #0B1120;          
+            --primary-light: #1E293B;    
+            --accent: #00D2FF;           
+            --accent-hover: #00B2D9;     
+            --accent-light: #E6F9FF;     
+            --bg: #F0F4F8;               
+            --card-bg: #ffffff;
+            --border: #CBD5E1;           
+            --border-hover: #00D2FF;     
+            --text-main: #0F172A;        
+            --text-muted: #64748B;       
+            --success: #10B981;          
+            --danger: #EF4444;           
+            --focus-ring: rgba(0, 210, 255, 0.15);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            line-height: 1.5;
+            padding: 50px 20px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        /* --- STEP TRACKER --- */
+        .step-tracker {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 35px;
+        }
+
+        .step-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .step-dot.active {
+            background-color: var(--accent);
+            transform: scale(1.3);
+            box-shadow: 0 0 8px rgba(0, 210, 255, 0.5);
+        }
+
+        .step-label {
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-muted);
+        }
+
+        /* --- SYSTEM TRANSISI HALAMAN --- */
+        .step-container {
+            width: 100%;
+            position: relative;
+        }
+
+        .step-page {
+            width: 100%;
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease, visibility 0.5s;
+            opacity: 1;
+            transform: translateX(0);
+            visibility: visible;
+        }
+
+        .step-page.slide-out {
+            opacity: 0;
+            transform: translateX(-80px);
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            visibility: hidden;
+        }
+
+        .step-page.slide-in {
+            opacity: 0;
+            transform: translateX(80px);
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            visibility: hidden;
+        }
+
+        /* --- HEADER & BRANDING --- */
+        header {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        header h1 {
+            color: var(--primary);
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+        }
+
+        header h1 span {
+            color: var(--accent); 
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            max-width: 580px;
+            margin: 0 auto;
+        }
+
+        /* --- SECURITY BANNER --- */
+        .security-banner {
+            background-color: var(--accent-light);
+            border: 1px solid #B3EFFF;
+            border-left: 4px solid var(--accent);
+            padding: 16px 20px;
+            margin-bottom: 30px;
+            border-radius: 12px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .security-banner svg {
+            width: 20px;
+            height: 20px;
+            fill: var(--accent-hover);
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .security-banner h4 {
+            color: #007799;
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .security-banner p {
+            font-size: 0.8rem;
+            color: #005573;
+            line-height: 1.4;
+        }
+
+        /* --- CARDS & FORMS --- */
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 4px 6px -1px rgba(11, 17, 32, 0.02), 0 10px 15px -3px rgba(11, 17, 32, 0.04);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-group.full-width {
+            grid-column: span 2;
+        }
+
+        label {
+            display: block;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: var(--primary);
+            font-size: 0.9rem;
+        }
+
+        label .required {
+            color: var(--danger);
+            margin-left: 2px;
+        }
+
+        .label-desc {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            margin-top: -3px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        /* --- DYNAMIC ADDED BLOCK STYLES --- */
+        .dynamic-item {
+            background-color: #f8fafc;
+            border: 1px dashed var(--border);
+            border-radius: 12px;
+            padding: 20px 20px 0 20px;
+            margin-bottom: 16px;
+            position: relative;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .btn-remove-item {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: var(--danger);
+            font-weight: 700;
+            font-size: 0.8rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-add-more {
+            background: none;
+            border: 1.5px dashed var(--accent);
+            color: var(--accent-hover);
+            padding: 10px 16px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            border-radius: 8px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+            margin-bottom: 24px;
+        }
+
+        .btn-add-more:hover {
+            background-color: var(--accent-light);
+            border-color: var(--accent-hover);
+        }
+
+        /* --- INPUT STYLES --- */
+        input[type="text"],
+        input[type="email"],
+        input[type="date"],
+        input[type="time"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease-in-out;
+            outline: none;
+            color: var(--text-main);
+            background-color: #fafafa;
+        }
+
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        input[type="date"]:focus,
+        input[type="time"]:focus,
+        select:focus,
+        textarea:focus {
+            background-color: #ffffff;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px var(--focus-ring);
+        }
+
+        /* --- RADIO CARDS --- */
+        .radio-options-column {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 6px;
+        }
+
+        .radio-option {
+            border: 1.5px solid var(--border);
+            padding: 18px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            background-color: #ffffff;
+            position: relative;
+        }
+
+        .radio-option:hover {
+            border-color: var(--border-hover);
+            background-color: #F7FDFE;
+        }
+
+        .radio-option input[type="radio"] {
+            margin-top: 3px;
+            width: 16px;
+            height: 16px;
+            accent-color: var(--accent);
+            flex-shrink: 0;
+        }
+
+        .radio-option.selected {
+            border-color: var(--accent);
+            background-color: var(--accent-light);
+        }
+
+        .radio-option.selected h5 {
+            color: var(--primary);
+        }
+
+        .radio-option h5 {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 2px;
+        }
+
+        .radio-option p {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        /* --- SECTION HEADER IN FORM --- */
+        .section-title {
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1.5px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title svg {
+            width: 16px;
+            height: 16px;
+            fill: var(--accent-hover); 
+        }
+
+        /* --- STATEMENT & CHECKBOX SECTION --- */
+        .statement-box {
+            background-color: #F8FAFC;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-top: 30px;
+            margin-bottom: 20px;
+        }
+
+        .statement-title {
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .statement-list {
+            padding-left: 20px;
+            margin-bottom: 20px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .statement-list li {
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            cursor: pointer;
+            padding: 14px 16px;
+            background-color: #ffffff;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .checkbox-container:hover {
+            border-color: var(--accent);
+            background-color: var(--accent-light);
+        }
+
+        .checkbox-container input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin-top: 2px;
+            accent-color: var(--accent-hover);
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .checkbox-label-text {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--primary);
+            user-select: none;
+        }
+
+        .checkbox-label-text .required {
+            color: var(--danger);
+        }
+
+        /* --- BUTTONS --- */
+        .back-button {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 20px;
+            transition: all 0.2s ease;
+            padding: 8px 14px;
+            border-radius: 6px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+        }
+
+        .back-button svg {
+            width: 14px;
+            height: 14px;
+            fill: var(--text-muted);
+            transition: transform 0.2s ease;
+        }
+
+        .back-button:hover {
+            color: var(--accent-hover);
+            border-color: var(--accent);
+        }
+
+        .back-button:hover svg {
+            transform: translateX(-3px);
+            fill: var(--accent-hover);
+        }
+
+        button[type="submit"] {
+            width: 100%;
+            background-color: var(--accent-hover); 
+            color: white;
+            border: none;
+            padding: 15px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 178, 217, 0.2);
+            transition: all 0.2s ease-in-out;
+            margin-top: 15px;
+            letter-spacing: 0.5px;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #0093B3; 
+            transform: translateY(-1px);
+            box-shadow: 0 6px 14px rgba(0, 178, 217, 0.3);
+        }
+
+        button[type="submit"]:disabled {
+            background-color: var(--border);
+            color: var(--text-muted);
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* --- UPLOAD ZONE --- */
+        .file-upload-wrapper {
+            border: 2px dashed var(--border);
+            padding: 24px 20px;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            background-color: #fafafa;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .file-upload-wrapper:hover {
+            border-color: var(--accent);
+            background-color: var(--accent-light);
+        }
+
+        .file-upload-wrapper svg {
+            width: 28px;
+            height: 28px;
+            fill: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .file-upload-wrapper:hover svg {
+            fill: var(--accent-hover);
+        }
+
+        .file-upload-wrapper input[type="file"] {
+            display: none;
+        }
+
+        .file-upload-info {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .file-upload-info strong {
+            color: var(--accent-hover);
+            font-weight: 700;
+        }
+
+        .file-upload-info p {
+            margin-top: 4px;
+        }
+
+        .file-list {
+            margin-top: 10px;
+            font-size: 0.8rem;
+            color: var(--success);
+            font-weight: 600;
+            background-color: #ecfdf5;
+            padding: 6px 12px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        /* --- STATUS METRIC MESSAGE --- */
+        .status-message {
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+            text-align: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .status-message.error {
+            display: block;
+            background-color: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+
+        .loading-spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2.5px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .report-block {
+            display: none;
+        }
+
+        .report-block.show {
+            display: block;
+        }
+
+        /* --- RESPONSIVENESS --- */
+        @media (max-width: 768px) {
+            body {
+                padding: 24px 12px;
+            }
+            .card {
+                padding: 24px 16px;
+            }
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
+            .form-group.full-width {
+                grid-column: span 1;
+            }
+            header h1 {
+                font-size: 1.8rem;
+            }
+        }
+
+        #success-page {
+            display: none;
+            text-align: center;
+            padding: 40px 20px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(11, 17, 32, 0.02), 0 10px 15px -3px rgba(11, 17, 32, 0.04);
+            max-width: 650px;
+            margin: 40px auto 0 auto;
+        }
+
+        #success-page .success-icon {
+            width: 80px;
+            height: 80px;
+            background-color: var(--accent-light);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px auto;
+            border: 2px solid #B3EFFF;
+            box-shadow: 0 0 15px rgba(0, 210, 255, 0.2);
+        }
+
+        #success-page .success-icon svg {
+            width: 40px;
+            height: 40px;
+            fill: var(--accent-hover);
+        }
+
+        #success-page h2 {
+            color: var(--primary);
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 12px;
+        }
+
+        #success-page p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            max-width: 500px;
+            margin: 0 auto 30px auto;
+        }
+
+        #success-page button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 4px 10px rgba(11, 17, 32, 0.15);
+        }
+
+        #success-page button:hover {
+            background-color: var(--primary-light);
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <!-- TAMPILAN SUKSES -->
+    <div id="success-page">
+        <div class="success-icon">
+            <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+        </div>
+        <h2>Laporan Berhasil Terkirim!</h2>
+        <p>
+            Terima kasih atas laporan Anda. Data telah terekam secara aman dan terenkripsi di dalam database sistem kami. Email notifikasi otomatis juga telah diteruskan kepada PIC yang berwenang untuk segera diproses.
+        </p>
+        
+        <!-- ===== BOX NOMOR TIKET ===== -->
+        <div style="background-color: rgba(255, 255, 255, 0.05); border: 1px dashed #00D2FF; padding: 15px; border-radius: 8px; margin: 20px 0; text-align: center;">
+            <span style="font-size: 13px; color: #aaa; display: block; margin-bottom: 5px;">NOMOR TIKET ANDA:</span>
+            <strong id="ticket-number-display" style="font-size: 22px; color: #00D2FF; letter-spacing: 1px;">-</strong>
+            <small style="font-size: 11px; color: #888; display: block; margin-top: 5px;">*Harap catat/simpan nomor tiket ini untuk melacak aduan Anda.</small>
+        </div>
+        <!-- =========================== -->
+        
+        <button onclick="window.location.reload();">Kirim Laporan Baru</button>
+    </div>
+
+    <!-- ELEMEN FORM UTAMA -->
+    <form id="astroWbsForm">
+        
+        <!-- Step Tracker -->
+        <div class="step-tracker">
+            <span class="step-label">Langkah 1 dari 2</span>
+            <div class="step-dot active" id="dot1"></div>
+            <div class="step-dot" id="dot2"></div>
+        </div>
+
+        <div class="step-container">
+            
+            <!-- ================= STEP 1: PILIHAN UTAMA ================= -->
+            <div class="step-page" id="step1">
+                <header>
+                    <h1>WBS Portal - <span>ASTRO</span></h1>
+                    <p>Formulir Pengaduan Pelanggaran Aturan Perusahaan (PP / COC) & Pihak Ketiga ASTRO</p>
+                </header>
+
+                <div class="security-banner">
+                    <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+                    <div>
+                        <h4>Jaminan Keamanan Data</h4>
+                        <p>Seluruh informasi dan/atau laporan yang Anda berikan akan dijaga kerahasiaannya sesuai dengan Peraturan Perusahaan Astro dan hukum yang berlaku di Indonesia.</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label style="font-size: 1rem; margin-bottom: 12px;">Saya ingin melaporkan: <span class="required">*</span></label>
+                        <div class="radio-options-column">
+                            
+                            <div class="radio-option" id="optMitra" onclick="selectReportType('mitra')">
+                                <input type="radio" name="main_report_type" value="[Mitra] PP / COC" id="radioMitra" required>
+                                <div>
+                                    <h5>Mitra</h5>
+                                </div>
+                            </div>
+
+                            <div class="radio-option" id="optEmployee" onclick="selectReportType('employee')">
+                                <input type="radio" name="main_report_type" value="[Employee] PP / COC" id="radioEmployee">
+                                <div>
+                                    <h5>Karyawan</h5>
+                                </div>
+                            </div>
+
+                            <div class="radio-option" id="optSupplier" onclick="selectReportType('supplier')">
+                                <input type="radio" name="main_report_type" value="Laporan Supplier / Pihak Ketiga" id="radioSupplier">
+                                <div>
+                                    <h5>Supplier / Pihak Ketiga</h5>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= STEP 2: FORM DETAIL & SUBMIT ================= -->
+            <div class="step-page slide-in" id="step2">
+                
+                <button type="button" class="back-button" onclick="goToStep1()">
+                    <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+                    Kembali ke Pilihan Kategori
+                </button>
+
+                <div class="card">
+                    <!-- ================= BLOCK 1: MITRA ================= -->
+                    <div id="block_mitra" class="report-block">
+                        <div class="section-title">
+                            <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                            Identitas Saya
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="mitra_reporter_name">Nama Lengkap <span class="required">*</span></label>
+                                <input type="text" id="mitra_reporter_name" name="mitra_reporter_name">
+                            </div>
+                            <div class="form-group">
+                                <label for="mitra_reporter_pos">Role <span class="required">*</span></label>
+                                <input type="text" id="mitra_reporter_pos" name="mitra_reporter_pos">
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="mitra_reporter_phone">Nomor Kontak (No. HP) <span class="required">*</span></label>
+                                <input type="text" id="mitra_reporter_phone" name="mitra_reporter_phone">
+                            </div>
+                        </div>
+
+                        <div class="section-title" style="margin-top: 20px;">
+                            <svg viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
+                            Pihak yang Dilaporkan
+                        </div>
+                        
+                        <!-- Container untuk Input Terlapor Dinamis -->
+                        <div id="mitra_reported_container"></div>
+                        <button type="button" class="btn-add-more" onclick="addReportedField('mitra')">
+                            <span>+</span> Tambah Terlapor (Jika Lebih dari 1 Orang)
+                        </button>
+
+                        <div class="section-title" style="margin-top: 20px;">
+                            <svg viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z"/></svg>
+                            Waktu & Kronologi Kejadian
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="mitra_date">Tanggal Kejadian <span class="required">*</span></label>
+                                <input type="date" id="mitra_date" name="mitra_date">
+                            </div>
+                            <div class="form-group">
+                                <label for="mitra_time">Estimasi Waktu Kejadian <span class="required">*</span></label>
+                                <input type="time" id="mitra_time" name="mitra_time">
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="mitra_desc">Deskripsi Kejadian Secara Kronologis <span class="required">*</span></label>
+                                <textarea id="mitra_desc" name="mitra_desc" rows="5" placeholder="Contoh: Pada pukul 14.00, terlapor melakukan tindakan yang tidak sesuai standar operasional yaitu... (Jelaskan urutan kejadian secara detail)"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ================= BLOCK 2: EMPLOYEE ================= -->
+                    <div id="block_employee" class="report-block">
+                        <div class="section-title">
+                            <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                            Identitas Saya
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="emp_reporter_name">Nama Lengkap <span class="required">*</span></label>
+                                <input type="text" id="emp_reporter_name" name="emp_reporter_name">
+                            </div>
+                            <div class="form-group">
+                                <label for="emp_reporter_pos">Role <span class="required">*</span></label>
+                                <input type="text" id="emp_reporter_pos" name="emp_reporter_pos">
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="emp_reporter_phone">Nomor Kontak (No. HP) <span class="required">*</span></label>
+                                <input type="text" id="emp_reporter_phone" name="emp_reporter_phone">
+                            </div>
+                        </div>
+
+                        <div class="section-title" style="margin-top: 20px;">
+                            <svg viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
+                            Pihak yang Dilaporkan
+                        </div>
+                        
+                        <!-- Container untuk Input Terlapor Dinamis -->
+                        <div id="emp_reported_container"></div>
+                        <button type="button" class="btn-add-more" onclick="addReportedField('emp')">
+                            <span>+</span> Tambah Terlapor (Jika Lebih dari 1 Orang)
+                        </button>
+
+                        <div class="section-title" style="margin-top: 20px;">
+                            <svg viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z"/></svg>
+                            Waktu & Kronologi Kejadian
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="emp_date">Tanggal Kejadian <span class="required">*</span></label>
+                                <input type="date" id="emp_date" name="emp_date">
+                            </div>
+                            <div class="form-group">
+                                <label for="emp_time">Waktu Kejadian <span class="required">*</span></label>
+                                <input type="time" id="emp_time" name="emp_time">
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="emp_desc">Deskripsi Kejadian Secara Kronologis <span class="required">*</span></label>
+                                <textarea id="emp_desc" name="emp_desc" rows="5" placeholder="Contoh: Pada tanggal tersebut, terjadi pelanggaran PP/COC berupa... (Jelaskan secara runtut kejadian beserta pihak yang terlibat)"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ================= BLOCK 3: SUPPLIER / PIHAK KETIGA ================= -->
+                    <div id="block_supplier" class="report-block">
+                        <div class="section-title">
+                            <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                            Identitas Saya
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="sup_reporter_name">Nama Lengkap <span class="required">*</span></label>
+                                <input type="text" id="sup_reporter_name" name="sup_reporter_name">
+                            </div>
+                            <div class="form-group">
+                                <label for="sup_name">Role <span class="required">*</span></label>
+                                <input type="text" id="sup_name" name="sup_name">
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="sup_reporter_phone">Nomor Kontak (No. HP) <span class="required">*</span></label>
+                                <input type="text" id="sup_reporter_phone" name="sup_reporter_phone">
+                            </div>
+                        </div>
+
+                        <div class="section-title" style="margin-top: 20px;">
+                            <svg viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
+                            Personil / PIC Supplier yang Dilaporkan
+                        </div>
+                        
+                        <!-- Container untuk Input Terlapor Dinamis -->
+                        <div id="sup_reported_container"></div>
+                        <button type="button" class="btn-add-more" onclick="addReportedField('sup')">
+                            <span>+</span> Tambah Personil Terlapor (Jika Lebih dari 1 Orang)
+                        </button>
+
+                        <div class="section-title" style="margin-top: 20px;">
+                            <svg viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z"/></svg>
+                            Waktu & Keterangan Kejadian
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="sup_date">Estimasi Tanggal Kejadian <span class="required">*</span></label>
+                                <input type="date" id="sup_date" name="sup_date">
+                            </div>
+                            <div class="form-group">
+                                <label for="sup_time">Waktu Kejadian <span class="required">*</span></label>
+                                <input type="time" id="sup_time" name="sup_time">
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="sup_desc">Deskripsi Kejadian Secara Kronologis <span class="required">*</span></label>
+                                <textarea id="sup_desc" name="sup_desc" rows="5" placeholder="Contoh: Terjadi indikasi penyimpangan berupa penagihan yang tidak sesuai / permintaan hadiah / manipulasi barang oleh vendor pada tanggal... (Jelaskan detail kronologinya)"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ================= BLOCK 4: BUKTI LAMPIRAN ================= -->
+                    <div id="evidence_section" style="display: none;">
+                        <div class="section-title" style="margin-top: 10px;">
+                            <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                            Bukti Lampiran Pendukung
+                        </div>
+                        <div class="form-group">
+                            <span class="label-desc">Unggah bukti dokumen, foto, invoice, atau screenshot percakapan (Maksimal ukuran file 10MB).</span>
+                            <div class="file-upload-wrapper" onclick="document.getElementById('evidence_file').click()">
+                                <div class="file-upload-info">
+                                    <svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+                                    <p>Seret file ke sini atau <strong>Pilih File</strong> dari perangkat Anda</p>
+                                </div>
+                                <input type="file" id="evidence_file" name="evidence_file" onchange="handleFileSelected(this)">
+                            </div>
+                            <div id="fileList" class="file-list" style="display: none;"></div>
+                        </div>
+                    </div>
+
+                    <!-- ================= PERSYARATAN & PERNYATAAN ================= -->
+                    <div id="statement_section" class="statement-box" style="display: none;">
+                        <div class="statement-title">Pernyataan Pelapor</div>
+                        <ul class="statement-list">
+                            <li>Saya menyatakan bahwa hal yang saya laporkan adalah hal yang sebenar-benarnya.</li>
+                            <li>Saya bersedia untuk dimintakan keterangan untuk kebutuhan penyelidikan.</li>
+                            <li>Pada saat proses penyelidikan, saya bersedia untuk memberikan keterangan yang sebenar-benarnya.</li>
+                            <li>Saya bersedia akan bersifat kooperatif selama masa penyelidikan berlangsung.</li>
+                            <li>Demi berjalan lancarnya proses penyelidikan, saya bersedia untuk merahasiakan laporan dan proses penyelidikan serta hasil akhir dari penyelidikan ini.</li>
+                        </ul>
+                        
+                        <label class="checkbox-container">
+                            <input type="checkbox" id="agreement_check" onchange="toggleSubmitButton()">
+                            <span class="checkbox-label-text">
+                                Ya, saya bersedia menyatakan laporan tersebut. <span class="required">*</span>
+                            </span>
+                        </label>
+                    </div>
+
+                    <button type="submit" id="submitBtn" disabled>
+                        <span id="btnText">KIRIM LAPORAN SECARA AMAN</span>
+                        <div id="btnSpinner" class="loading-spinner"></div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <div id="statusMessage" class="status-message"></div>
+</div>
+
+<script>
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx8QbPGFMP56orTl9aJ1oM03PMliDsZyAMysb2jPHIlTxJhA8lHhMd93b4dXHNoY2Rf/exec";
+
+    let selectedFileBase64 = "";
+    let selectedFileName = "";
+    let activeType = "";
+
+    function setCurrentDateTime() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const formattedDate = `${year}-${month}-${day}`;
+        
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const formattedTime = `${hours}:${minutes}`;
+        
+        document.getElementById('mitra_date').value = formattedDate;
+        document.getElementById('mitra_time').value = formattedTime;
+        
+        document.getElementById('emp_date').value = formattedDate;
+        document.getElementById('emp_time').value = formattedTime;
+        
+        document.getElementById('sup_date').value = formattedDate;
+        document.getElementById('sup_time').value = formattedTime;
+    }
+
+    // Fungsi menambah baris Terlapor secara dinamis
+    function addReportedField(prefix, isInitial = false) {
+        const container = document.getElementById(`${prefix}_reported_container`);
+        const blockId = Date.now() + Math.random().toString(36).substr(2, 5);
+        
+        const div = document.createElement('div');
+        div.className = 'dynamic-item';
+        div.id = `block_${blockId}`;
+        
+        if (prefix === 'mitra') {
+            div.innerHTML = `
+                ${!isInitial ? `<button type="button" class="btn-remove-item" onclick="removeReportedField('block_${blockId}', 'mitra')">🗑️ Hapus</button>` : ''}
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Nama Lengkap <span class="required">*</span></label>
+                        <input type="text" name="mitra_reported_name[]" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Role <span class="required">*</span></label>
+                        <input type="text" name="mitra_reported_pos[]" required>
+                    </div>
+                    <div class="form-group full-width" style="margin-bottom: 10px;">
+                        <label>Nomor Kontak (No. HP) <span style="font-weight: 400; color: var(--text-muted); font-size: 0.8rem;">(Opsional)</span></label>
+                        <input type="text" name="mitra_reported_phone[]">
+                    </div>
+                </div>
+            `;
+        } else if (prefix === 'emp') {
+            div.innerHTML = `
+                ${!isInitial ? `<button type="button" class="btn-remove-item" onclick="removeReportedField('block_${blockId}', 'emp')">🗑️ Hapus</button>` : ''}
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Nama Lengkap <span class="required">*</span></label>
+                        <input type="text" name="emp_reported_name[]" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Role <span class="required">*</span></label>
+                        <input type="text" name="emp_reported_pos[]" required>
+                    </div>
+                    <div class="form-group full-width" style="margin-bottom: 10px;">
+                        <label>No.Kontak (No.HP) <span style="font-weight: 400; color: var(--text-muted); font-size: 0.8rem;">(Opsional)</span></label>
+                        <input type="text" name="emp_reported_phone[]">
+                    </div>
+                </div>
+            `;
+        } else if (prefix === 'sup') {
+            div.innerHTML = `
+                ${!isInitial ? `<button type="button" class="btn-remove-item" onclick="removeReportedField('block_${blockId}', 'sup')">🗑️ Hapus</button>` : ''}
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label>Nama Perusahaan / Vendor Supplier <span class="required">*</span></label>
+                        <input type="text" name="sup_reported_company[]" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Nama Lengkap PIC / Personil <span class="required">*</span></label>
+                        <input type="text" name="sup_reported_name[]" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Role <span class="required">*</span></label>
+                        <input type="text" name="sup_reported_pos[]" required>
+                    </div>
+                    <div class="form-group full-width" style="margin-bottom: 10px;">
+                        <label>Nomor Kontak (No HP) <span style="font-weight: 400; color: var(--text-muted); font-size: 0.8rem;">(Opsional)</span></label>
+                        <input type="text" name="sup_reported_phone[]">
+                    </div>
+                </div>
+            `;
+        }
+        
+        container.appendChild(div);
+    }
+
+    function removeReportedField(id, prefix) {
+        const container = document.getElementById(`${prefix}_reported_container`);
+        if (container.children.length > 1) {
+            document.getElementById(id).remove();
+        } else {
+            alert("Minimal harus ada 1 pihak terlapor.");
+        }
+    }
+
+    function selectReportType(type) {
+        activeType = type;
+        
+        document.getElementById('optMitra').classList.remove('selected');
+        document.getElementById('optEmployee').classList.remove('selected');
+        document.getElementById('optSupplier').classList.remove('selected');
+
+        document.getElementById('block_mitra').classList.remove('show');
+        document.getElementById('block_employee').classList.remove('show');
+        document.getElementById('block_supplier').classList.remove('show');
+
+        document.getElementById('mitra_reported_container').innerHTML = "";
+        document.getElementById('emp_reported_container').innerHTML = "";
+        document.getElementById('sup_reported_container').innerHTML = "";
+
+        setCurrentDateTime();
+
+        if (type === 'mitra') {
+            document.getElementById('optMitra').classList.add('selected');
+            document.getElementById('radioMitra').checked = true;
+            document.getElementById('block_mitra').classList.add('show');
+            addReportedField('mitra', true);
+            setFieldsRequired('block_mitra', true);
+            setFieldsRequired('block_employee', false);
+            setFieldsRequired('block_supplier', false);
+        } else if (type === 'employee') {
+            document.getElementById('optEmployee').classList.add('selected');
+            document.getElementById('radioEmployee').checked = true;
+            document.getElementById('block_employee').classList.add('show');
+            addReportedField('emp', true);
+            setFieldsRequired('block_employee', true);
+            setFieldsRequired('block_mitra', false);
+            setFieldsRequired('block_supplier', false);
+        } else if (type === 'supplier') {
+            document.getElementById('optSupplier').classList.add('selected');
+            document.getElementById('radioSupplier').checked = true;
+            document.getElementById('block_supplier').classList.add('show');
+            addReportedField('sup', true);
+            setFieldsRequired('block_supplier', true);
+            setFieldsRequired('block_mitra', false);
+            setFieldsRequired('block_employee', false);
+        }
+
+        document.getElementById('evidence_section').style.display = 'block';
+        document.getElementById('statement_section').style.display = 'block';
+        
+        document.getElementById('agreement_check').checked = false;
+        toggleSubmitButton();
+
+        const step1 = document.getElementById('step1');
+        const step2 = document.getElementById('step2');
+        step1.classList.add('slide-out');
+        
+        setTimeout(() => {
+            step2.classList.remove('slide-in');
+            document.querySelector('.step-label').innerText = "Langkah 2 dari 2";
+            document.getElementById('dot2').classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }, 50);
+    }
+
+    function toggleSubmitButton() {
+        const checkbox = document.getElementById('agreement_check');
+        document.getElementById('submitBtn').disabled = !checkbox.checked;
+    }
+
+    function goToStep1() {
+        const step1 = document.getElementById('step1');
+        const step2 = document.getElementById('step2');
+        step2.classList.add('slide-in');
+        
+        setTimeout(() => {
+            step1.classList.remove('slide-out');
+            document.querySelector('.step-label').innerText = "Langkah 1 dari 2";
+            document.getElementById('dot2').classList.remove('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }, 50);
+    }
+
+    function setFieldsRequired(blockId, isRequired) {
+        const block = document.getElementById(blockId);
+        const inputs = block.querySelectorAll('input:not([name*="_reported_phone"]), textarea, select');
+        inputs.forEach(input => {
+            if (input.type !== 'radio' && !input.name.includes('[]')) {
+                input.required = isRequired;
+            }
+        });
+    }
+
+    function handleFileSelected(input) {
+        const fileListDiv = document.getElementById('fileList');
+        fileListDiv.innerHTML = "";
+        fileListDiv.style.display = 'none';
+        
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+            if (file.size > 10 * 1024 * 1024) {
+                alert("Ukuran file terlalu besar! Maksimal adalah 10MB.");
+                input.value = "";
+                return;
+            }
+            selectedFileName = file.name;
+            fileListDiv.style.display = 'inline-block';
+            fileListDiv.innerHTML = `📄 Terpilih: <strong>${file.name}</strong> (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                selectedFileBase64 = e.target.result.split(',')[1];
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    document.getElementById('astroWbsForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const checkbox = document.getElementById('agreement_check');
+        if (!checkbox.checked) return;
+
+        const submitBtn = document.getElementById('submitBtn');
+        const btnText = document.getElementById('btnText');
+        const btnSpinner = document.getElementById('btnSpinner');
+        const statusDiv = document.getElementById('statusMessage');
+
+        submitBtn.disabled = true;
+        btnText.style.display = 'none';
+        btnSpinner.style.display = 'block';
+        statusDiv.style.display = 'none';
+
+        let reportedCompaniesArr = [];
+        let reportedNamesArr = [];
+        let reportedPhonesArr = [];
+        let reportedPosArr = [];
+        
+        let prefix = activeType === 'mitra' ? 'mitra' : (activeType === 'employee' ? 'emp' : 'sup');
+        
+        if (activeType === 'supplier') {
+            document.querySelectorAll(`input[name="sup_reported_company[]"]`).forEach(input => {
+                if(input.value.trim() !== "") reportedCompaniesArr.push(input.value.trim());
+            });
+        }
+
+        document.querySelectorAll(`input[name="${prefix}_reported_name[]"]`).forEach(input => {
+            if(input.value.trim() !== "") reportedNamesArr.push(input.value.trim());
+        });
+        
+        document.querySelectorAll(`input[name="${prefix}_reported_phone[]"]`).forEach(input => {
+            reportedPhonesArr.push(input.value.trim() !== "" ? input.value.trim() : "-");
+        });
+
+        document.querySelectorAll(`input[name="${prefix}_reported_pos[]"]`).forEach(input => {
+            reportedPosArr.push(input.value.trim() !== "" ? input.value.trim() : "-");
+        });
+
+        let payload = {
+            main_report_type: document.querySelector('input[name="main_report_type"]:checked').value,
+            file_data: selectedFileBase64,
+            file_name: selectedFileName,
+            agreement_signed: "Ya, saya bersedia menyatakan laporan tersebut.",
+            reported_status: activeType === 'supplier' ? 'Supplier' : (activeType === 'mitra' ? 'Mitra' : 'Karyawan'),
+            reported_name: activeType === 'supplier' 
+                ? reportedCompaniesArr.map((comp, idx) => `${comp} - ${reportedNamesArr[idx] || ''}`).join(', ')
+                : reportedNamesArr.join(', '), 
+            reported_phone: reportedPhonesArr.join(', '),
+            reported_pos: reportedPosArr.join(', ')
+        };
+
+        if (activeType === 'mitra') {
+            payload.reporter_name = document.getElementById('mitra_reporter_name').value;
+            payload.reporter_pos = document.getElementById('mitra_reporter_pos').value;
+            payload.reporter_phone = document.getElementById('mitra_reporter_phone').value;
+            payload.incident_date = document.getElementById('mitra_date').value;
+            payload.incident_time = document.getElementById('mitra_time').value;
+            payload.description = document.getElementById('mitra_desc').value;
+        } else if (activeType === 'employee') {
+            payload.reporter_name = document.getElementById('emp_reporter_name').value;
+            payload.reporter_pos = document.getElementById('emp_reporter_pos').value;
+            payload.reporter_phone = document.getElementById('emp_reporter_phone').value;
+            payload.incident_date = document.getElementById('emp_date').value;
+            payload.incident_time = document.getElementById('emp_time').value;
+            payload.description = document.getElementById('emp_desc').value;
+        } else if (activeType === 'supplier') {
+            payload.reporter_name = document.getElementById('sup_reporter_name').value;
+            payload.reporter_pos = document.getElementById('sup_name').value;
+            payload.reporter_phone = document.getElementById('sup_reporter_phone').value;
+            payload.incident_date = document.getElementById('sup_date').value;
+            payload.incident_time = document.getElementById('sup_time').value;
+            payload.description = document.getElementById('sup_desc').value;
+        }
+
+        fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload)
+        })
+        .then(response => {
+            if (!response.ok) throw new Error("HTTP error " + response.status);
+            return response.json();
+        })
+        .then(res => {
+            if (res.status === "success") {
+                document.getElementById('astroWbsForm').style.display = 'none';
+                document.getElementById('success-page').style.display = 'block';
+                var ticketElement = document.getElementById('ticket-number-display');
+                if (ticketElement) {
+                    ticketElement.innerText = res.ticket_number;
+                }
+            } else {
+                throw new Error(res.message || "Gagal memproses data.");
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            statusDiv.className = "status-message error";
+            statusDiv.innerText = "Terjadi kegagalan saat mengirim laporan. Silakan periksa koneksi internet Anda.";
+            submitBtn.disabled = false;
+        })
+        .finally(() => {
+            btnText.style.display = 'block';
+            btnSpinner.style.display = 'none';
+        });
+    });
+</script>
+
+</body>
+</html>
