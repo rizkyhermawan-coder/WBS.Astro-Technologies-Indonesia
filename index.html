@@ -720,7 +720,7 @@
     </div>
 
     <!-- ELEMEN FORM UTAMA -->
-    <form id="astroWbsForm">
+    <form id="astroawbForm">
         
         <!-- Step Tracker -->
         <div class="step-tracker">
@@ -1210,7 +1210,7 @@
         }
     }
 
-    document.getElementById('astroWbsForm').addEventListener('submit', function(e) {
+    document.getElementById('astroawbForm').addEventListener('submit', function(e) {
         e.preventDefault();
 
         const checkbox = document.getElementById('agreement_check');
@@ -1303,7 +1303,7 @@
         })
         .then(res => {
             if (res.status === "success") {
-                document.getElementById('astroWbsForm').style.display = 'none';
+                document.getElementById('astroawbForm').style.display = 'none';
                 document.getElementById('success-page').style.display = 'block';
                 var ticketElement = document.getElementById('ticket-number-display');
                 if (ticketElement) {
