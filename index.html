@@ -348,6 +348,12 @@
             margin-bottom: 2px;
         }
 
+        .radio-option p {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
         /* --- SECTION HEADER IN FORM --- */
         .section-title {
             font-size: 0.95rem;
@@ -545,6 +551,10 @@
             font-weight: 700;
         }
 
+        .file-upload-info p {
+            margin-top: 4px;
+        }
+
         .file-list {
             margin-top: 10px;
             font-size: 0.8rem;
@@ -695,14 +705,14 @@
         </div>
         <h2>Laporan Berhasil Terkirim!</h2>
         <p>
-            Terima kasih atas laporan Anda. Data telah terekam secara aman dan terenkripsi di dalam database sistem kami. Email/Notifikasi otomatis juga telah diteruskan kepada PIC yang berwenang untuk segera diproses.
+            Terima kasih atas laporan Anda. Data telah terekam secara aman dan terenkripsi di dalam database sistem kami. Email notifikasi otomatis juga telah diteruskan kepada PIC yang berwenang untuk segera diproses.
         </p>
         
         <!-- ===== BOX NOMOR TIKET ===== -->
-        <div style="background-color: #F8FAFC; border: 1.5px dashed var(--accent); padding: 15px; border-radius: 12px; margin: 20px 0; text-align: center;">
-            <span style="font-size: 13px; color: var(--text-muted); display: block; margin-bottom: 5px; font-weight: 600;">NOMOR TIKET ANDA:</span>
-            <strong id="ticket-number-display" style="font-size: 24px; color: var(--primary); letter-spacing: 1px;">-</strong>
-            <small style="font-size: 11px; color: var(--text-muted); display: block; margin-top: 5px;">*Harap catat/simpan nomor tiket ini untuk melacak aduan Anda.</small>
+        <div style="background-color: rgba(255, 255, 255, 0.05); border: 1px dashed #00D2FF; padding: 15px; border-radius: 8px; margin: 20px 0; text-align: center;">
+            <span style="font-size: 13px; color: #aaa; display: block; margin-bottom: 5px;">NOMOR TIKET ANDA:</span>
+            <strong id="ticket-number-display" style="font-size: 22px; color: #00D2FF; letter-spacing: 1px;">-</strong>
+            <small style="font-size: 11px; color: #888; display: block; margin-top: 5px;">*Harap catat/simpan nomor tiket ini untuk melacak aduan Anda.</small>
         </div>
         <!-- =========================== -->
         
@@ -983,6 +993,8 @@
 </div>
 
 <script>
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxNpbl7-X9nNpR1eQR4Ki4WHCuWzNCuhBZIgJpaSwiM4er5Hd0e8M-9S-IkA3Gm2aGz/exec";
+
     let selectedFileBase64 = "";
     let selectedFileName = "";
     let activeType = "";
@@ -1280,17 +1292,17 @@
             payload.description = document.getElementById('sup_desc').value;
         }
 
-        // --- SOLUSI: Menggunakan FETCH API menggantikan google.script.run ---
-        // (Pastikan kamu ganti URL di bawah dengan Web App URL milikmu)
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxNpbl7-X9nNpR1eQR4Ki4WHCuWzNCuhBZIgJpaSwiM4er5Hd0e8M-9S-IkA3Gm2aGz/exec"; 
-
-        fetch(SCRIPT_URL, {
-            method: "POST",
+        fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify(payload)
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) throw new Error("HTTP error " + response.status);
+            return response.json();
+        })
         .then(res => {
-            if (res && res.status === "success") {
+            if (res.status === "success") {
                 document.getElementById('astroWbsForm').style.display = 'none';
                 document.getElementById('success-page').style.display = 'block';
                 var ticketElement = document.getElementById('ticket-number-display');
@@ -1298,18 +1310,16 @@
                     ticketElement.innerText = res.ticket_number;
                 }
             } else {
-                statusDiv.className = "status-message error";
-                statusDiv.innerText = "Gagal memproses data: " + (res.message || "Unknown error");
-                submitBtn.disabled = false;
+                throw new Error(res.message || "Gagal memproses data.");
             }
-            btnText.style.display = 'block';
-            btnSpinner.style.display = 'none';
         })
         .catch(error => {
             console.error('Error:', error);
             statusDiv.className = "status-message error";
-            statusDiv.innerText = "Terjadi kegagalan saat mengirim laporan: " + error.message;
+            statusDiv.innerText = "Terjadi kegagalan saat mengirim laporan. Silakan periksa koneksi internet Anda.";
             submitBtn.disabled = false;
+        })
+        .finally(() => {
             btnText.style.display = 'block';
             btnSpinner.style.display = 'none';
         });
